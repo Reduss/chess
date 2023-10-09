@@ -3,14 +3,17 @@ from enum import Enum
 from typing import Tuple, List, Dict
 import math
 
-from game_logic import PieceType, GRID_N, Piece, INGAME_PIECES, Team
+from game_logic import PieceType, Piece, INGAME_PIECES, Team
+
+# TODO: refactor this
+
 
 # ==== CONSTS ====
 
 INIT_DISPLAY_W = 1000
 INIT_DISPLAY_H = 800
 
-# TODO: set these
+# TODO: implemenet 
 MIN_DISPLAY_W = None
 MIN_DISPLAY_H = None
 
@@ -24,11 +27,13 @@ GREY: pygame.Color = pygame.Color(128,128,128)
 DARK_BROWN: pygame.Color = pygame.Color(179,95,51)
 LIGHT_BROWN: pygame.Color = pygame.Color(241,208,165)
 LIGHT_GREEN: pygame.Color = pygame.Color(88,232,88, 128)
+LIGHT_BLUE: pygame.Color = pygame.Color(173, 216, 230)
 TRANSPARENT: pygame.Color = pygame.Color(0 , 0, 0, 0)
 
 CELL_DARK = DARK_BROWN
 CELL_LIGHT = LIGHT_BROWN
-CELL_HIGHLIGHT = LIGHT_GREEN
+MOVE_HIGHLIGHT = LIGHT_GREEN
+FOCUS_HIGHLIGHT = LIGHT_BLUE
 
 # Pieces
 
@@ -56,8 +61,8 @@ def render_cell(surface: pygame.Surface, coord: str, color: pygame.Color):
     pygame.draw.rect(surface, color, pygame.Rect(get_pos_from_chess_notation(coord)[0], get_pos_from_chess_notation(coord)[1], 
                                                       CELL_SIZE, CELL_SIZE))
 
-def highlight_cell(cell_coord: str):
-    render_cell(HINTS_SURFACE, cell_coord, CELL_HIGHLIGHT)
+def highlight_cell(cell_coord: str, color: pygame.Color):
+    render_cell(HINTS_SURFACE, cell_coord, color)
 
 def get_pos_from_chess_notation(pos_in_chess : str) -> List[int]:
     return [COORDS_X.index(pos_in_chess[0]) * CELL_SIZE,COORDS_Y.index(int(pos_in_chess[1])) * CELL_SIZE]
@@ -66,7 +71,6 @@ def get_chess_notation_from_pos(coordinates: Tuple[int, int]) -> str:
     # floor(x / CELL_SIZE) => the number of the cell 
     # 50 / 80
     if(not position_inside_grid(coordinates)):
-        print("click outside the grid")
         return ""
     
     
@@ -138,21 +142,9 @@ def render():
     """
         Renders everything
     """
-    
-    # TODO: set min size of the window, 
-    #       implement mouse controls 
     blit_background()
     render_dynamic_assets()
     blit_dynamic()
-    
-    #render_grid()
-    #SCREEN.fill(GREY)
-    #render_grid_new()
-    #render_coords()
-    #render_possible_moves(Piece(PieceType.ROOK, Team.BLACK, position=f"{'a2'}"))
-    #render_pieces()
-    #SCREEN.blit(GRID, get_playarea_coords())
-    #print("RENDER: render.render() called")
 
 def blit_background():
     SCREEN.fill(GREY)
@@ -163,9 +155,6 @@ def blit_background():
     HINTS_SURFACE.fill(TRANSPARENT)
 
     SCREEN.blit(GRID, get_playarea_coords())
-    #PIECES_SURFACE.fill(WHITE)
-    #PIECES_SURFACE.blit(SCREEN, (10, 10))
-
 
 """
     rener order
@@ -208,6 +197,8 @@ def render_pieces():
         render_piece(p)
 
 def render_piece(pc: Piece):
+    if pc.is_taken:
+        return
     try:
         sprite = pygame.image.load(rf"assets/{pc.team.value}_{pc.type.value}.png")
         sprite = pygame.transform.scale(sprite, (CELL_SIZE, CELL_SIZE))
@@ -219,10 +210,12 @@ def render_piece(pc: Piece):
         print(f"Coudn't render a piece sprite: {e}")
 
 def render_focus(pc: Piece):
+    highlight_cell(pc.position, FOCUS_HIGHLIGHT)
     render_possible_moves(pc)
 
 def render_possible_moves(pc: Piece):
-    highlight_cell(pc.position)
+    print(pc.moves)
+    for m in pc.moves:
+        highlight_cell(m, MOVE_HIGHLIGHT)
     print(f"REDNER: render_possible_moves() called on cell {pc.position}")
 
-# TODO: pieces as enum + dictionary where values are functions that draw them?

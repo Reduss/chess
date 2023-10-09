@@ -9,6 +9,11 @@ import game_logic
 
 # ==== MAIN LOOP ====
 
+# TODO: create a menu and a sandbox mode, where one can place pieces however he wants
+#       also should be able to save the board
+# TODO: implement turns (in sandbox too)
+
+
 def start():
     pygame.init()
     pygame.display.set_caption("Chess")
@@ -31,9 +36,11 @@ def main():
                 running = False
             elif event.type == pygame.VIDEORESIZE:
                 render.render()
+
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 handle_mouse(event)
                 render.render()
+            
             update()
     pygame.quit()
 
